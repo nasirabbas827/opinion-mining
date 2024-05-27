@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}View Profile{% endblock %}
+
+{% block css %}
+    {{ block.super }}
+    <style>
+        main {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            color: #3498db;
+        }
+
+        .profile-container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        img {
+            max-width: 150px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        strong {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        a.button {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        a.button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+{% endblock css %}
+
+{% block content %}
+    <h2>Your Profile</h2>
+    <div class="profile-container">
+        {% if user_profile.profile_picture %}
+            <img src="{{ user_profile.profile_picture.url }}" alt="Profile Picture">
+        {% endif %}
+        <strong>Full Name:</strong> {{ user_profile.full_name }}<br>
+        <strong>Email:</strong> {{ user_profile.email }}<br>
+        <strong>Date of Birth:</strong> {{ user_profile.age }}<br>
+        <strong>Date of Birth:</strong> {{ user_profile.gender }}<br>
+        <strong>Date of Birth:</strong> {{ user_profile.date_of_birth }}<br>
+        <strong>Phone Number:</strong> {{ user_profile.phone_number }}<br>
+        <strong>Address:</strong> {{ user_profile.address }}<br>
+
+        <a href="{% url 'update_profile' %}" class="button">Update Profile</a>
+    </div>
+{% endblock %}

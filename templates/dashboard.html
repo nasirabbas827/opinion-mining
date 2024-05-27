@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block css %}
+    {{ block.super }}
+{% endblock css %}
+
+{% block content %}
+    <div class="container">
+<h1> Our Topics </h1>
+
+        <div class="row">
+            {% for post in posts %}
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        {% if post.post_picture %}
+                            <img class="card-img-top" src="{{ post.post_picture.url }}" alt="Post image">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ post.topic }}</h5>
+                            <p class="card-text">{{ post.post_content|truncatewords:20 }}</p>
+                            <a href="{% url 'add_comment' post.id %}" class="btn btn-primary">Comment Now</a>
+                            <a href="{% url 'view_comments' post.id %}" class="btn btn-secondary">View Comments</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

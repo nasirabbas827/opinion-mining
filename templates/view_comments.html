@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}View Comments{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <!-- Bootstrap Card for Post Details -->
+        <div class="card">
+            {% if post.post_picture %}
+                <img class="card-img-top" src="{{ post.post_picture.url }}" alt="Post image">
+            {% endif %}
+            <div class="card-body">
+                <h2 class="card-title">{{ post.topic }}</h2>
+                <p class="card-text">{{ post.post_content }}</p>
+            </div>
+        </div>
+
+        <!-- List of Comments -->
+        <div class="mt-4">
+            <h3>Comments</h3>
+            {% for comment in comments %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ comment.user.username }}</h5>
+                        <p class="card-text">{{ comment.comment_text }}</p>
+                        <p class="card-text">
+                            <small class="text-muted">Sentiment: {{ comment.sentiment_label }} (Score: {{ comment.sentiment_score }})</small>
+                        </p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                Classification: 
+                                {% if comment.sentiment_label == 'positive' and comment.sentiment_score >= 0.75 %}
+                                    Good
+                                {% elif comment.sentiment_label == 'negative' and comment.sentiment_score <= -0.75 %}
+                                    Worst
+                                {% elif comment.sentiment_label == 'negative' %}
+                                    Bad
+                                {% else %}
+                                    Neutral
+                                {% endif %}
+                            </small>
+                        </p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

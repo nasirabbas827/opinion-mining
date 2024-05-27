@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Update Profile{% endblock %}
+
+{% block css %}
+    {{ block.super }}
+    <style>
+        main {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            color: #3498db;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="file"],  /* Added for profile picture */
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .current-profile-picture {
+            max-width: 150px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        a.button {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        a.button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+{% endblock css %}
+
+{% block content %}
+    <h2>Update Profile</h2>
+    
+    {% if user_profile.profile_picture %}
+        <div class="current-profile-picture">
+            {% for image in user_profile.profile_picture.all %}
+                <img src="./profile_pic/{{ image }}" alt="Profile Picture">
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <form method="post" enctype="multipart/form-data">  <!-- Added enctype for file upload -->
+        {% csrf_token %}
+        {{ form.as_p }}
+        <label for="id_profile_picture">Profile Picture:</label>
+        <input type="file" name="profile_picture" accept="image/*">  <!-- Added profile_picture field -->
+        <button type="submit">Update Profile</button>
+        <a href="{% url 'view_profile' %}" class="button">View Profile</a>
+
+    </form>
+{% endblock %}

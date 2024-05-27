@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Add Comment{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="card">
+            {% if post.post_picture %}
+                <img class="card-img-top" src="{{ post.post_picture.url }}" alt="Post image">
+            {% endif %}
+            <div class="card-body">
+                <h2 class="card-title">{{ post.topic }}</h2>
+                <p class="card-text">{{ post.post_content }}</p>
+                <p class="card-text"><small class="text-muted">Posted on {{ post.post_date }}</small></p>
+            </div>
+        </div>
+
+        {% if existing_comment %}
+            <h3 class="mt-4">Your Comment</h3>
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-text">{{ existing_comment.comment_text }}</p>
+                    <p class="card-text"><small class="text-muted">Sentiment: {{ existing_comment.sentiment_label }} (Score: {{ existing_comment.sentiment_score }})</small></p>
+                </div>
+            </div>
+        {% else %}
+            <h3 class="mt-4">Add Comment</h3>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">Submit Comment</button>
+            </form>
+        {% endif %}
+    </div>
+{% endblock %}
