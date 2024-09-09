@@ -96,45 +96,89 @@ def add_comment(request, post_id):
     return render(request, 'add_comment.html', {'form': form, 'post': post})
 
 from nltk.corpus import sentiwordnet as swn
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+from nltk import pos_tag
+
+# Map NLTK POS tags to WordNet POS tags
+def get_wordnet_pos(treebank_tag):
+    if treebank_tag.startswith('J'):
+        return wordnet.ADJ
+    elif treebank_tag.startswith('V'):
+        return wordnet.VERB
+    elif treebank_tag.startswith('N'):
+        return wordnet.NOUN
+    elif treebank_tag.startswith('R'):
+        return wordnet.ADV
+    else:
+        return None
 
 def calculate_sentiment(comment_text):
     lemmatizer = WordNetLemmatizer()
     tokens = word_tokenize(comment_text)
+    pos_tags = pos_tag(tokens)  # Get POS tags for tokens
+
     pos_score = 0
     neg_score = 0
     token_count = 0
+    negation = False  # To handle negation
 
-    for token in tokens:
-        lemma = lemmatizer.lemmatize(token)
-        synsets = wordnet.synsets(lemma)
+    for token, pos in pos_tags:
+        wordnet_pos = get_wordnet_pos(pos) or wordnet.NOUN  # Default to NOUN if no POS match
+        lemma = lemmatizer.lemmatize(token, pos=wordnet_pos)
+        synsets = wordnet.synsets(lemma, pos=wordnet_pos)
+        
         if not synsets:
             continue
-        synset = synsets[0]
-        swn_synset = swn.senti_synset(synset.name())
-        pos_score += swn_synset.pos_score()
-        neg_score += swn_synset.neg_score()
+
+        swn_scores = []
+        for synset in synsets:
+            try:
+                swn_synset = swn.senti_synset(synset.name())
+                swn_scores.append((swn_synset.pos_score(), swn_synset.neg_score()))
+            except:
+                continue
+
+        if not swn_scores:
+            continue
+
+        avg_pos = sum([s[0] for s in swn_scores]) / len(swn_scores)
+        avg_neg = sum([s[1] for s in swn_scores]) / len(swn_scores)
+
+        if token.lower() in ['not', "n't"]:  # Handle negation
+            negation = True
+            continue
+
+        if negation:
+            pos_score += avg_neg  # Reverse the sentiment
+            neg_score += avg_pos
+            negation = False
+        else:
+            pos_score += avg_pos
+            neg_score += avg_neg
+
         token_count += 1
 
     if token_count == 0:
         return 0, 'neutral'
-    
+
     avg_pos_score = pos_score / token_count
     avg_neg_score = neg_score / token_count
 
-    if avg_pos_score > avg_neg_score:
+    # Adjust classification logic with thresholds
+    if avg_pos_score > avg_neg_score and avg_pos_score > 0.05:  # Consider positive if score > 0.05
         sentiment_label = 'positive'
         sentiment_score = avg_pos_score
-    elif avg_neg_score > avg_pos_score:
+    elif avg_neg_score > avg_pos_score and avg_neg_score > 0.05:  # Consider negative if score > 0.05
         sentiment_label = 'negative'
-        sentiment_score = avg_neg_score
+        sentiment_score = -avg_neg_score  # Negative score for negative sentiment
     else:
         sentiment_label = 'neutral'
         sentiment_score = 0
     
     return sentiment_score, sentiment_label
+
 
 @login_required
 def add_comment(request, post_id):
@@ -151,7 +195,7 @@ def add_comment(request, post_id):
             comment.user = request.user
             comment.post = post
             sentiment_score, sentiment_label = calculate_sentiment(comment.comment_text)
-            comment.sentiment_score = sentiment_score
+            comment.sentiment_score = sentiment_score  # Now handles both positive and negative scores
             comment.sentiment_label = sentiment_label
             comment.save()
             return redirect('dashboard')
@@ -159,6 +203,7 @@ def add_comment(request, post_id):
         form = CommentForm()
     
     return render(request, 'add_comment.html', {'form': form, 'post': post})
+
 
 
 @login_required
