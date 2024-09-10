@@ -2,26 +2,25 @@
 
 {% block title %}Dashboard{% endblock %}
 
-{% block css %}
-    {{ block.super }}
-{% endblock css %}
-
 {% block content %}
     <div class="container">
-<h1> Our Topics </h1>
+        <h1> Our Topics </h1>
 
         <div class="row">
             {% for post in posts %}
-                <div class="col-md-4">
-                    <div class="card mb-4">
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
                         {% if post.post_picture %}
-                            <img class="card-img-top" src="{{ post.post_picture.url }}" alt="Post image">
+                            <img class="card-img-top" height="400px" src="{{ post.post_picture.url }}" alt="Post image">
                         {% endif %}
-                        <div class="card-body">
+                        <div class="card-body d-flex flex-column">
                             <h5 class="card-title">{{ post.topic }}</h5>
-                            <p class="card-text">{{ post.post_content|truncatewords:20 }}</p>
-                            <a href="{% url 'add_comment' post.id %}" class="btn btn-primary">Comment Now</a>
-                            <a href="{% url 'view_comments' post.id %}" class="btn btn-secondary">View Comments</a>
+                            <p class="card-text flex-grow-1">{{ post.post_content|truncatewords:20 }}</p>
+                            <p class="card-text"><strong>Sentiment:</strong> {{ post.sentiment_label }}</p>
+                            <div class="mt-auto">
+                                <a href="{% url 'add_comment' post.id %}" class="btn btn-primary">Comment Now</a>
+                                <a href="{% url 'view_comments' post.id %}" class="btn btn-secondary">View Comments</a>
+                            </div>
                         </div>
                     </div>
                 </div>

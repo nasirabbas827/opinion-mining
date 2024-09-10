@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordChangeForm
 from django.shortcuts import render, get_object_or_404, redirect
@@ -35,9 +36,33 @@ def user_login(request):
     return render(request, 'login.html', {'form': form})
 
 @login_required
+@login_required
 def dashboard(request):
     posts = Post.objects.all()
+    
+    # Calculate average sentiment score for each post
+    for post in posts:
+        comments = Comments.objects.filter(post=post)
+        if comments:
+            total_score = sum(comment.sentiment_score or 0 for comment in comments)
+            avg_score = total_score / comments.count()
+            post.avg_sentiment_score = avg_score
+        else:
+            post.avg_sentiment_score = 0
+        
+        # Determine the sentiment label
+        if post.avg_sentiment_score > 0.01:
+            post.sentiment_label = 'Good'
+        elif post.avg_sentiment_score < -0.1:
+            post.sentiment_label = 'Bad'
+        else:
+            post.sentiment_label = 'Worst'
+    
+    # Sort posts by their average sentiment score
+    posts = sorted(posts, key=lambda x: x.avg_sentiment_score, reverse=True)
+    
     return render(request, 'dashboard.html', {'posts': posts})
+
 
 @login_required
 def update_profile(request):
@@ -56,10 +81,17 @@ def update_profile(request):
         form = ProfileForm(instance=profile)
     return render(request, 'update_profile.html', {'form': form})
 
+
+
 @login_required
 def view_profile(request):
-    user_profile = Profile.objects.get(user=request.user)
+    try:
+        user_profile = Profile.objects.get(user=request.user)
+    except Profile.DoesNotExist:
+        return HttpResponse("Profile does not exist. Please create a profile first.", status=404)
+
     return render(request, 'view_profile.html', {'user_profile': user_profile})
+
 
 @login_required
 def change_password(request):
